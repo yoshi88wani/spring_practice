@@ -1,2 +1,2 @@
-# spring_practice
-## TODOリスト
+# TODOリスト
+## Spring Framework 学習用
