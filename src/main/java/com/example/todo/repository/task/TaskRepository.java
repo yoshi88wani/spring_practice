@@ -1,7 +1,9 @@
 package com.example.todo.repository.task;
 
+import com.example.todo.service.task.TaskSearchEntity;
 import org.apache.ibatis.annotations.*;
 import com.example.todo.service.task.TaskEntity;
+import org.springframework.scheduling.config.Task;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,16 +11,33 @@ import java.util.Optional;
 @Mapper
 public interface TaskRepository {
 
-    @Select("SELECT id, summary, description, status FROM tasks;")
-    List<TaskEntity> select();
+    @Select("""
+            <script>
+              SELECT id, summary, description, status
+              FROM tasks
+              <where>
+                <if test='condition.summary != null and !condition.summary.isBlank()'>
+                  summary LIKE CONCAT('%', #{condition.summary}, '%');
+                </if>
+                <if test="condition.status != null and !condition.status.isEmpty()">
+                  AND status IN (
+                    <foreach item="item" index="index" collection="condition.status" separator=",">
+                      #{item}
+                    </foreach>
+                  )
+                </if>
+              </where>
+            </script>
+            """)
+    List<TaskEntity> select(@Param("condition") TaskSearchEntity condition);
 
     @Select("SELECT id, summary, description, status FROM tasks WHERE id = #{taskId};")
     Optional<TaskEntity> selectById(@Param("taskId") long taskId);
 
     @Insert("""
-    INSERT INTO tasks (summary, description, status)　
-    VALUES (#{task.summary}, #{task.description}, #{task.status})
-    """)
+            INSERT INTO tasks (summary, description, status)　
+            VALUES (#{task.summary}, #{task.description}, #{task.status})
+            """)
     void insert(@Param("task") TaskEntity newEntity);
 
     @Update("""

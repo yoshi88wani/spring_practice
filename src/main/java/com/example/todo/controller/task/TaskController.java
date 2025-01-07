@@ -1,6 +1,7 @@
 package com.example.todo.controller.task;
 
 import com.example.todo.service.task.TaskEntity;
+import com.example.todo.service.task.TaskSearchEntity;
 import com.example.todo.service.task.TaskStatus;
 import lombok.RequiredArgsConstructor;
 import com.example.todo.service.task.TaskService;
@@ -11,6 +12,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Optional;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/tasks")
@@ -19,12 +23,13 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public String list(Model model) {
-        var TaskList = taskService.find()
+    public String list(TaskSearchForm searchForm, Model model) {
+        var TaskList = taskService.find(searchForm.toEntity())
                 .stream()
                 .map(TaskDTO::toDTO)
                 .toList();
         model.addAttribute("taskList", TaskList);
+        model.addAttribute("searchDTO", searchForm.toDTO());
         return "tasks/list";
     }
 
